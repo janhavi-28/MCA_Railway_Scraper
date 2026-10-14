@@ -216,7 +216,7 @@ async def run_pipeline(concurrency: int = 5, limit: int = 0, no_proxy: bool = Fa
     start_time = time.time()
     lock = asyncio.Lock()
 
-    async def process_one(co_row: Dict[str, str], idx: int):
+    async def process_one(co_row: Dict[str, str]):
         nonlocal completed
         async with sem:
             t0 = time.time()
