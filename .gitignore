@@ -35,3 +35,8 @@ ENV/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Secrets & Credentials
+*credentials*
+*.json
+!railway.json
