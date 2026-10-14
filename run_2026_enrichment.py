@@ -282,12 +282,34 @@ async def run_pipeline(concurrency: int = 5, limit: int = 0, no_proxy: bool = Fa
                     f"{co_name[:26]:<26} | Web: {w[:20]:<20} | Em: {e[:20]:<20} | Ph: {ph[:14]:<14} | ETA: {eta_hours:4.1f}h"
                 )
 
-                # Periodic Google Drive Auto-Sync every 250 companies
-                if gdrive and gdrive.is_configured and completed % 250 == 0:
-                    asyncio.get_running_loop().run_in_executor(None, gdrive.sync_file, OUTPUT_ENRICHED_CSV)
+                # Periodic Google Drive Auto-Sync and Memory Cleanup every 50 companies
+                if completed % 50 == 0:
+                    import gc
+                    gc.collect()
+                    if gdrive and gdrive.is_configured:
+                        print(f"☁️ [Auto-Sync] Triggering Google Drive sync at company {completed}...")
+                        asyncio.get_running_loop().run_in_executor(None, gdrive.sync_file, OUTPUT_ENRICHED_CSV)
 
-    tasks = [process_one(row, i) for i, row in enumerate(companies_to_process, 1)]
-    await asyncio.gather(*tasks)
+    # Memory-Safe Worker Pool via asyncio.Queue (prevents 150k task OOM crash)
+    queue = asyncio.Queue()
+    for row in companies_to_process:
+        queue.put_nowait(row)
+
+    async def worker():
+        while not queue.empty():
+            try:
+                row = queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
+            try:
+                await process_one(row)
+            except Exception as e:
+                print(f"⚠️ [Worker Error]: {e}")
+            finally:
+                queue.task_done()
+
+    workers = [asyncio.create_task(worker()) for _ in range(concurrency)]
+    await asyncio.gather(*workers)
 
     # Final Google Drive Auto-Sync on completion
     if gdrive and gdrive.is_configured:
@@ -303,7 +325,7 @@ async def run_pipeline(concurrency: int = 5, limit: int = 0, no_proxy: bool = Fa
 
 
 def main():
-    default_concurrency = int(os.getenv("CONCURRENCY", "3"))
+    default_concurrency = int(os.getenv("CONCURRENCY", "10"))
     parser = argparse.ArgumentParser(description="2026 MCA Companies Enrichment Pipeline")
     parser.add_argument("--concurrency", type=int, default=default_concurrency, help=f"Number of concurrent workers (default: {default_concurrency})")
     parser.add_argument("--limit", type=int, default=0, help="Limit number of companies to process (default: 0 = all)")

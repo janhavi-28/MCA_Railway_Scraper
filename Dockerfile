@@ -24,5 +24,5 @@ COPY master_main.py run_2026_enrichment.py stats_2026_enriched.py gdrive_sync.py
 COPY yearwise_csv/companies_2026.csv ./yearwise_csv/companies_2026.csv
 COPY companies_2026_enriched.csv ./companies_2026_enriched.csv
 
-# Default command: run batch enrichment with 20 workers
-CMD ["python", "-u", "run_2026_enrichment.py", "--concurrency", "20"]
+# Default command: run batch enrichment using CONCURRENCY environment variable
+CMD ["python", "-u", "run_2026_enrichment.py"]
