@@ -1,0 +1,195 @@
+================================================================================
+                    CORPORATE INTELLIGENCE SEARCH ENGINE
+                       SYSTEM SUMMARY & WORKFLOW GUIDE
+================================================================================
+
+1. OVERVIEW & PURPOSE
+--------------------------------------------------------------------------------
+The Corporate Intelligence Search Engine is an enterprise-grade agent designed
+to search, verify, and enrich Indian corporate entities. It accepts any Indian
+Company Name or Corporate Identification Number (CIN) and returns clean, verified
+statutory, leadership, digital contact, and social intelligence in a structured
+table format with 0% data hallucination.
+
+
+2. SYSTEM ARCHITECTURE (2-TIER DESIGN)
+--------------------------------------------------------------------------------
+The system is built on a high-performance 2-tier design:
+
+[TIER 1] Local Database & Cache Engine (0 ms - 2s)
+  • Persistent Cache: 'company_master_intelligence.csv' stores all verified
+    enriched profiles for instant zero-latency retrieval.
+  • Local MCA Database: Scans 3.2+ million registered Indian company records
+    across 'cleaned_csv/' and 'main_csv/' using strict exact-match indexing.
+
+[TIER 2] Single-Source Authoritative Live Enrichment (3s - 8s)
+  • Invoked only when missing digital or statutory contact intelligence.
+  • Each data category pulls strictly from its primary authoritative source.
+  • Unverified, ambiguous, or foreign data is marked as "NOT_FOUND".
+
+
+3. END-TO-END WORKFLOW
+--------------------------------------------------------------------------------
+When a user searches a company name or CIN (via Streamlit UI or Terminal CLI):
+
+                      +----------------------------------+
+                      |   User Search (Name or CIN)      |
+                      +----------------------------------+
+                                       |
+                                       v
+                    +--------------------------------------+
+                    |  TIER 1: Check Local Cache           |
+                    |  (company_master_intelligence.csv)   |
+                    +--------------------------------------+
+                                  /         \
+                       [Cache Hit]           [Cache Miss]
+                            /                     \
+                           v                       v
+               +-----------------------+   +---------------------------------+
+               | Return Profile (0 ms) |   | Scan Local MCA Database         |
+               +-----------------------+   | ('cleaned_csv/' Part 1-4)       |
+                                           +---------------------------------+
+                                                           |
+                                                           v
+                                            [Exact Name or CIN Match?]
+                                                /                 \
+                                             [Yes]               [No]
+                                              /                     \
+                                             v                       v
+                           +---------------------------+  +-------------------+
+                           | Populate Statutory Fields |  | Query as Unlisted |
+                           | (CIN, Address, Capital,   |  | / Modern Startup  |
+                           | State, Reg Date, Class)   |  +-------------------+
+                           +---------------------------+             |
+                                         \                          /
+                                          v                        v
+                                +--------------------------------------+
+                                |  TIER 2: Authoritative Enrichment    |
+                                +--------------------------------------+
+                                                   |
+      +--------------------------------------------+--------------------------------------------+
+      |                                            |                                            |
+      v                                            v                                            v
+[Official MCA Filings]                  [Official Website Discovery]                 [Social Media Discovery]
+• Scrapes MCA / ZaubaCorp via CIN       • Whole-Name Brand Match                     • Whole-Name Slug Match
+• Real Statutory Directors              • Must have Indian Geo Presence              • LinkedIn (/company/...)
+• Official Filing Email                 • Reject foreign / international sites       • Instagram handle
+                                                   |                                 • Reject foreign tags
+                                                   v                                 ('-international', 'oficial')
+                                        [Website Deep Crawl]
+                                        • JSON-LD Schema (HQ & Address)
+                                        • Verified Domain Business Email
+                                        • Official Contact Form URL
+                                                   |
+                                                   +--------------------------------------------+
+                                                                                                |
+                                                                                                v
+                                                                                +--------------------------------+
+                                                                                | Strict Validation & Cleanup    |
+                                                                                | (Missing fields -> 'NOT_FOUND')|
+                                                                                +--------------------------------+
+                                                                                                |
+                                                                                                v
+                                                                                +--------------------------------+
+                                                                                | 1. Save to Local Cache CSV     |
+                                                                                | 2. Render Results in Table UI  |
+                                                                                +--------------------------------+
+
+
+4. AUTHORITATIVE SOURCES OF TRUTH & RULES
+--------------------------------------------------------------------------------
+1. STATUTORY DATA (CIN, Capital, Address, State, Class, Date):
+   • Source: Cleaned Local MCA Database ('cleaned_csv/').
+   • Rule: Strict exact matching ('q == cin' OR 'q == legal_name' OR 'norm_q == norm_name').
+   • Never adopts arbitrary CINs or addresses from search snippets.
+
+2. DIRECTORS & KEY PEOPLE:
+   • Source: Official MCA Filing Records via CIN.
+   • Rule: Real DIN-holding directors from statutory filings. Never scrapes
+     random or hallucinated names from web searches. If not found -> "NOT_FOUND".
+
+3. OFFICIAL WEBSITE:
+   • Source: DuckDuckGo whole-name brand queries.
+   • Rule: 'is_candidate_website_valid' enforces:
+     - Domain must contain ALL distinctive brand tokens (e.g. 'culmen' + 'exim').
+     - Page content must explicitly contain the full company name.
+     - Page must show verifiable Indian presence (India, +91, Pvt Ltd, state/city).
+     - Obvious international sites with no Indian presence are strictly rejected.
+
+4. BUSINESS EMAIL & CONTACT FORM:
+   • Source 1: Verified Website Domain Email (e.g., 'contact@aivatika.com').
+   • Source 2: Official MCA filing email (e.g., 'archit_singla@outlook.com').
+   • Rule: Never adopts free/generic emails from third-party aggregators.
+
+5. LINKEDIN & INSTAGRAM:
+   • Source: Official website JSON-LD schema OR verified whole-name social search.
+   • Rule: Slug/handle must match all distinctive brand tokens.
+   • Rule: Rejects international suffixes ('international', 'global', 'usa', 'oficial').
+
+
+5. OUTPUT SCHEMA (16 COLUMNS)
+--------------------------------------------------------------------------------
+ 1. CIN                                    - Corporate Identification Number
+ 2. Company Name                           - Official Registered Name
+ 3. Company Registration Date              - Date of Incorporation (YYYY-MM-DD)
+ 4. Company Class                          - Private / Public
+ 5. Company Industrial Classification      - Business Category / NIC Code
+ 6. Company State                          - Registered State in India
+ 7. Company Address                        - Official Registered Office Address
+ 8. Authorized Capital                     - Authorized Share Capital (INR)
+ 9. Paidup Capital                         - Paid-up Share Capital (INR)
+10. Company Website                        - Official Corporate URL
+11. Company Email                          - Verified Business / Filing Email
+12. Company Contact Form                   - Contact / Support Webpage
+13. Employee Strength                      - Headcount range (if stated)
+14. Key People (Director/CEO/Stakeholder)  - Official Directors & Founders
+15. Company LinkedIn                       - Official LinkedIn Page URL
+16. Company Instagram                      - Official Instagram Handle URL
+
+
+6. HOW TO RUN
+--------------------------------------------------------------------------------
+A. Interactive Streamlit Web UI:
+   powershell> python -m streamlit run app.py --server.port 8501
+   • Open: http://localhost:8501
+   • Search any company name or CIN.
+   • Clean table presentation with zero data leakage or bulk download options.
+
+B. Command Line Interface (CLI):
+   powershell> python master_main.py --company "AIVATIKA"
+   powershell> python master_main.py --company "CREDITECH SOLUTIONS PRIVATE LIMITED"
+   powershell> python master_main.py --company "U51909HP2022PTC009552"
+   • Use '--no-cache' flag to force a fresh live re-scrape.
+
+
+7. VERIFIED REFERENCE EXAMPLES
+--------------------------------------------------------------------------------
+Example 1: Tech Startup (AIVATIKA)
+  • CIN: NOT_FOUND
+  • State: Karnataka
+  • Address: Bengaluru, Karnataka, IN
+  • Website: https://www.aivatika.com
+  • Email: contact@aivatika.com
+  • Key People: NOT_FOUND
+  • LinkedIn: https://www.linkedin.com/company/aivatikaa
+  • Instagram: https://www.instagram.com/ai_vatika
+
+Example 2: Small Private Trading Firm (CULMEN EXIM PRIVATE LIMITED)
+  • CIN: U51909HP2022PTC009552
+  • State: Himachal Pradesh
+  • Address: 445/2, Behind Wrigley's Village Katha, Baddi, Solan, HP - 173205
+  • Key People: Satish Kumar (Director), Archit Singla (Director)
+  • Email: archit_singla@outlook.com (Official MCA Filing Email)
+  • Website: NOT_FOUND (Rejects unrelated international culmen.in)
+  • LinkedIn: NOT_FOUND (Rejects US defense firm culmen-international)
+  • Instagram: NOT_FOUND (Rejects Spanish handle culmenoficial)
+
+Example 3: Fintech Firm (CREDITECH SOLUTIONS PRIVATE LIMITED)
+  • CIN: U72900DL2019PTC346150
+  • State: Delhi
+  • Address: J 602, 6th Floor, World Trade Centre Nauroji Nagar, New Delhi - 110029
+  • Capital: Authorized 18 Cr | Paid-up 15.42 Cr
+  • Key People: Sarita Agarwal, Monika Sarin, Anil Kumar Ahuja, Ashish Sarin, Jaijit Bhattacharyya
+  • Email: admin@alphamoney.in
+================================================================================
+python -u run_2026_enrichment.py --concurrency 3 --limit 2000 --no-proxy

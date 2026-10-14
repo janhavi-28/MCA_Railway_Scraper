@@ -3,14 +3,25 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Data & CSV files (protect datasets and output files from Git)
+# Large statutory archives (exclude gigabytes of offline history)
+cleaned_csv/
+main_csv/
+old_csv/
+extra/
+*.bak*
+
+# Allow specific 2026 input dataset and current enriched output for Railway
 *.csv
+!yearwise_csv/companies_2026.csv
+!companies_2026_enriched.csv
+
 *.csv.backup
 *.xlsx
 
-# Logs
+# Logs & scratch
 logs/
 *.log
+scratch/
 
 # Environments
 .env
@@ -24,4 +35,3 @@ ENV/
 .idea/
 .DS_Store
 Thumbs.db
-scratch/

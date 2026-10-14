@@ -1,0 +1,89 @@
+==============================================================================
+  📊 2026 MCA ENRICHMENT DATASET STATISTICS & QUALITY AUDIT REPORT
+==============================================================================
+  • Source File              : D:\AIVATIKA_WORK\MCA_2025-26 Companies\companies_2026_enriched.csv
+  • Total Companies Enriched : 4,101
+  • Master 2026 Pool Size    : 161,409
+  • Progress Completed       : 2.54%
+  • Remaining to Enrich      : 157,308
+==============================================================================
+
+🎯 1. DIGITAL INTELLIGENCE & CONTACT REACH (Lead Generation Yield)
+------------------------------------------------------------------------------
+  Field Name                             | Found      | Fill Rate 
+------------------------------------------------------------------------------
+  🌐 Corporate Websites                   | 528        |  12.87%
+  📧 Verified Emails                      | 365        |   8.90%
+  📞 Contact Numbers (Tel/Mob)            | 7          |   0.17%
+  📝 Web Contact Forms                    | 442        |  10.78%
+  👥 Directors / Key People               | 432        |  10.53%
+  💼 Headcount / Strength                 | 24         |   0.59%
+  🔗 Official LinkedIn                    | 202        |   4.93%
+  📸 Official Instagram                   | 345        |   8.41%
+------------------------------------------------------------------------------
+  • Corporate Domain Emails (@company.com) : 361 (8.80%)
+  • Free Webmail (@gmail/@yahoo/etc)       : 4 (0.10%)
+  • Any Contact Reach (Web/Email/Social)   : 528 (12.87%)
+  • High-Value Triple Match (Web+Email+Dir): 67 (1.63%)
+
+🏛️  2. STATUTORY & CORPORATE BASELINE
+------------------------------------------------------------------------------
+  Field Name                             | Found      | Fill Rate 
+------------------------------------------------------------------------------
+  🆔 Corporate Identity No (CIN)          | 4,101      | 100.00%
+  🏢 Legal Company Name                   | 4,101      | 100.00%
+  📅 Incorporation Date                   | 4,101      | 100.00%
+  🏛️  Company Class                      | 4,101      | 100.00%
+  🏭 Industrial Classification            | 4,101      | 100.00%
+  📍 Registered State                     | 4,101      | 100.00%
+  📮 Registered Office Address            | 4,101      | 100.00%
+  💰 Authorized Capital (INR)             | 4,101      | 100.00%
+  💵 Paid-up Capital (INR)                | 4,101      | 100.00%
+------------------------------------------------------------------------------
+
+📍 3. TOP 5 STATES IN CURRENT ENRICHED BATCH
+------------------------------------------------------------------------------
+  • Maharashtra                    : 684 companies (16.7%)
+  • Uttar Pradesh                  : 484 companies (11.8%)
+  • Delhi                          : 356 companies (8.7%)
+  • Telangana                      : 296 companies (7.2%)
+  • Gujarat                        : 277 companies (6.8%)
+
+🏭 4. TOP 5 INDUSTRIES IN CURRENT ENRICHED BATCH
+------------------------------------------------------------------------------
+  • Community, personal and Social Services : 1,092 companies (26.6%)
+  • Business Services              : 685 companies (16.7%)
+  • Trading                        : 656 companies (16.0%)
+  • Construction                   : 285 companies (6.9%)
+  • Transport, storage and Communications : 216 companies (5.3%)
+
+⭐ 5. RECENT HIGH-INTEL SAMPLES (Latest Enriched Leads)
+------------------------------------------------------------------------------
+  [1] MISSION SKILLED COUNCIL
+      • CIN       : U88900UT2026NPL020580
+      • Website   : https://missionskilledcouncil.org
+      • Email     : info@missionskilledcouncil.org
+      • Phone     : +91 81918 40404
+      • Directors : NOT_FOUND
+      • Socials   : LI: https://www.linkedin.com/company/mission-skilled-council | IG: https://www.instagram.com/missionskilledcouncil
+
+  [2] WORLD AGRO PRIVATE LIMITED
+      • CIN       : U46692MP2026PTC081108
+      • Website   : https://agrohaworld.com
+      • Email     : %20info@agrohaworld.com
+      • Phone     : +91 93144 09691
+      • Directors : Dhirajlal Ghusabhai Hirpara, Jitendrakumar Ghusabhai Hirpara
+      • Socials   : LI: https://www.linkedin.com/company/agrohabusinessworld | IG: https://www.instagram.com/agrohabusinessworld
+
+  [3] SOBHAINFRA TECH PRIVATE LIMITED
+      • CIN       : U08106MH2026PTC465051
+      • Website   : https://www.sobhainfratech.com
+      • Email     : info@sobhainfratech.com
+      • Phone     : +91 98191 39531
+      • Directors : NOT_FOUND
+      • Socials   : LI: NOT_FOUND | IG: https://www.instagram.com/shobha_group
+
+==============================================================================
+  ✅ Report saved to: D:\AIVATIKA_WORK\MCA_2025-26 Companies\companies_2026_stats_summary.txt
+==============================================================================
+

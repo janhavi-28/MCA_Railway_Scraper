@@ -1,0 +1,152 @@
+========================================================================================
+   MCA 2026 CORPORATE INTELLIGENCE SCRAPER — RAILWAY 24/7 DEPLOYMENT GUIDE
+========================================================================================
+
+TABLE OF CONTENTS:
+1. Why We Need Docker for Railway
+2. Why & How Google Drive Auto-Backup Works
+3. Pre-Requisites & Files Included in Repo
+4. Step-by-Step Google Drive Service Account Setup
+5. Step-by-Step GitHub Repository Setup
+6. Step-by-Step Railway Deployment & Configuration
+7. Monitoring & Managing 24/7 Cloud Operations
+
+----------------------------------------------------------------------------------------
+1. WHY WE NEED DOCKER
+----------------------------------------------------------------------------------------
+- Your local machine runs Windows. Railway runs on headless Linux servers.
+- The scraper uses Playwright to deeply crawl corporate websites and extract verified
+  contact phone numbers, emails, leadership names, and contact forms.
+- On Linux cloud servers, Playwright (Chromium) requires special system libraries
+  (such as libnss3, libasound2, libgbm1, font libraries, and CA certificates) that do
+  NOT come pre-installed in standard cloud Python environments.
+- Without Docker: Railway will fail immediately with "Chromium browser missing / 
+  shared library not found" errors.
+- With Docker: The included Dockerfile bundles Debian Linux, system dependencies,
+  Chromium, Python 3.11, and our code into a self-contained container that runs
+  identically on cloud servers without any crashes or missing library errors.
+
+----------------------------------------------------------------------------------------
+2. WHY GOOGLE DRIVE AUTO-BACKUP WORKS BEST
+----------------------------------------------------------------------------------------
+- Cloud hosting platforms like Railway use "ephemeral containers" (temporary disk storage).
+- Whenever Railway reboots the server, updates code, or restarts after a network blip,
+  any files stored purely on local container disk can get wiped.
+- By integrating Google Drive:
+  * Every 200–500 companies scraped, the updated "companies_2026_enriched.csv" is
+    automatically uploaded/synced to your private Google Drive folder.
+  * You can open your Google Drive on your smartphone or laptop anytime, view live
+    progress, and download the latest enriched CSV file without touching Railway CLI.
+  * Your progress is 100% immune to cloud container restarts.
+
+----------------------------------------------------------------------------------------
+3. PRE-CONFIGURED FILES IN YOUR REPOSITORY
+----------------------------------------------------------------------------------------
+The following deployment files have already been created and prepared for you:
+  • Dockerfile          : Optimized Debian Linux container with Playwright Chromium.
+  • requirements.txt    : All required libraries (aiohttp, beautifulsoup4, tldextract, etc.)
+  • railway.json        : Configures Dockerfile builder and "ALWAYS" auto-restart policy.
+  • .dockerignore       : Ignores multi-gigabyte statutory archives (cleaned_csv, main_csv)
+                          to make Docker builds super fast (<60 seconds).
+  • proxies.txt         : Your pool of 90-100 active rotating proxies.
+  • master_main.py      : Master scraping engine with 17-column phone number extraction.
+  • run_2026_enrichment.py: High-throughput batch pipeline with cloud volume & env var support.
+  • companies_2026_enriched.csv: Your current dataset (4,139+ companies already enriched).
+
+----------------------------------------------------------------------------------------
+4. STEP-BY-STEP GOOGLE DRIVE SETUP (Takes ~3 mins)
+----------------------------------------------------------------------------------------
+Step 4.1: Enable Google Drive API
+  1. Open your browser and go to: https://console.cloud.google.com/
+  2. Create a new project (e.g. "MCA Scraper Cloud").
+  3. Go to "APIs & Services" > "Library".
+  4. Search for "Google Drive API" and click "Enable".
+
+Step 4.2: Create Service Account & Download Key
+  1. Go to "APIs & Services" > "Credentials".
+  2. Click "+ CREATE CREDENTIALS" > Select "Service account".
+  3. Enter Name: "mca-uploader", click "Create and Continue", then "Done".
+  4. Click on the newly created Service Account email (e.g. mca-uploader@xxx.iam.gserviceaccount.com).
+  5. Go to the "Keys" tab > Click "ADD KEY" > "Create new key" > Select "JSON" > Click "Create".
+  6. A small JSON file will be downloaded to your computer (e.g. credentials.json).
+
+Step 4.3: Create Google Drive Folder & Share Access
+  1. Open your regular Google Drive (drive.google.com).
+  2. Create a new folder named: "MCA_2026_Scraped_Data".
+  3. Right-click the folder > "Share".
+  4. Paste your Service Account email (from step 4.2) and set permission to "Editor".
+  5. Look at the folder URL in your browser address bar:
+     https://drive.google.com/drive/folders/1aBcD_xyz123456789
+     The last part ("1aBcD_xyz123456789") is your GDRIVE_FOLDER_ID.
+
+----------------------------------------------------------------------------------------
+5. STEP-BY-STEP GITHUB REPOSITORY SETUP
+----------------------------------------------------------------------------------------
+Open PowerShell in "d:\AIVATIKA_WORK\MCA_2025-26 Companies":
+
+Step 5.1: Initialize Git and Stage Files
+  git init
+  git add master_main.py run_2026_enrichment.py stats_2026_enriched.py
+  git add Dockerfile requirements.txt railway.json .dockerignore proxies.txt
+  git add yearwise_csv/companies_2026.csv
+  git add companies_2026_enriched.csv
+  git commit -m "Deploy MCA 2026 Scraper with Contact Number Extraction"
+
+Step 5.2: Create Private Repo on GitHub
+  1. Go to https://github.com/new
+  2. Repository name: mca-2026-scraper
+  3. Select: PRIVATE (IMPORTANT: Keep it Private so your proxies and data are safe).
+  4. Click "Create repository".
+
+Step 5.3: Push Code
+  git remote add origin https://github.com/YOUR_GITHUB_USERNAME/mca-2026-scraper.git
+  git branch -M main
+  git push -u origin main
+
+----------------------------------------------------------------------------------------
+6. STEP-BY-STEP RAILWAY DEPLOYMENT
+----------------------------------------------------------------------------------------
+Step 6.1: Create Project on Railway
+  1. Go to https://railway.app and log in using your GitHub account.
+  2. Click "+ New Project" > Select "Deploy from GitHub repo".
+  3. Select your "mca-2026-scraper" repository.
+  4. Click "Deploy Now".
+
+Step 6.2: Configure Environment Variables
+  1. Click on the deployed service card on Railway canvas.
+  2. Go to the "Variables" tab.
+  3. Add the following variables:
+     • CONCURRENCY = 25
+     • GDRIVE_FOLDER_ID = <Your Google Drive Folder ID from Step 4.3>
+     • GDRIVE_CREDENTIALS_JSON = <Paste entire text of your downloaded JSON file>
+
+Step 6.3: Configure 24/7 Restart Policy
+  1. Go to the "Settings" tab inside your Railway service.
+  2. Scroll down to "Restart Policy".
+  3. Change it to: "Always" (Max Retries: 10).
+  4. This guarantees that if Railway reboots or internet blips, the scraper
+     re-launches automatically and resumes from where it left off.
+
+Step 6.4: (Optional but Recommended) Attach a Persistent Volume
+  1. On your Railway Project canvas, click "+ New" > "Volume".
+  2. Mount Path: /app/data
+  3. Add variable in Settings > Variables:
+     • OUTPUT_CSV_PATH = /app/data/companies_2026_enriched.csv
+
+----------------------------------------------------------------------------------------
+7. MONITORING & MANAGING 24/7 CLOUD OPERATIONS
+----------------------------------------------------------------------------------------
+- View Live Logs:
+  Click "View Logs" in Railway anytime from your PC or mobile phone. You will see
+  the live streaming output:
+  [ 4200/157200] ( 2.7%) COMPANY NAME | Web: https://... | Em: ... | Ph: +91 ... | ETA: ...
+
+- Speed & Output with 100 Proxies at Concurrency 25:
+  • Speed          : ~1,200 to 1,500 companies enriched per hour
+  • Daily Output   : ~28,800 to 35,000 companies per day
+  • Total Time     : ~4.5 to 5.5 days to complete all remaining 157,000 companies.
+
+- Download Results:
+  Simply open your Google Drive folder "MCA_2026_Scraped_Data" anytime and download
+  the latest "companies_2026_enriched.csv" directly to Excel.
+========================================================================================

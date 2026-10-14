@@ -1,0 +1,17 @@
+# Ignore huge statutory CSV directories that are not needed for 2026 batch enrichment
+cleaned_csv/
+main_csv/
+old_csv/
+extra/
+logs/
+.git/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.vscode/
+.idea/
+*.bak*
+benchmark_analysis_summary.txt
+companies_2026_stats_summary.txt
