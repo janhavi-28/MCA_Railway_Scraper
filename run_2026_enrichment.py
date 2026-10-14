@@ -39,6 +39,11 @@ from master_main import (
     normalize_company_name,
 )
 
+try:
+    from gdrive_sync import GDriveSync
+except ImportError:
+    GDriveSync = None
+
 # Ensure UTF-8 output and instant unbuffered streaming on Windows console
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -163,6 +168,7 @@ async def run_pipeline(concurrency: int = 5, limit: int = 0, no_proxy: bool = Fa
 
     proxies = [] if no_proxy else load_proxies()
     proxy_cycle = itertools.cycle(proxies) if proxies else None
+    gdrive = GDriveSync() if GDriveSync else None
 
     print("=" * 76)
     print("  🚀 2026 MCA CORPORATE INTELLIGENCE PRODUCTION ENRICHMENT PIPELINE")
@@ -171,6 +177,10 @@ async def run_pipeline(concurrency: int = 5, limit: int = 0, no_proxy: bool = Fa
     print(f"  • Enriched Output  : {OUTPUT_ENRICHED_CSV.resolve()}")
     print(f"  • Proxies Active   : {len(proxies)} loaded from proxies.txt" if proxies else "  • Mode             : Direct Local Network (No Proxies)")
     print(f"  • Worker Concurrency: {concurrency}")
+    if gdrive and gdrive.is_configured:
+        print(f"  • Google Drive Sync: ACTIVE (Folder: {gdrive.folder_id})")
+    else:
+        print("  • Google Drive Sync: Standby (Set GDRIVE_FOLDER_ID & credentials to activate)")
     print("=" * 76 + "\n")
 
     # Load input companies
@@ -272,8 +282,17 @@ async def run_pipeline(concurrency: int = 5, limit: int = 0, no_proxy: bool = Fa
                     f"{co_name[:26]:<26} | Web: {w[:20]:<20} | Em: {e[:20]:<20} | Ph: {ph[:14]:<14} | ETA: {eta_hours:4.1f}h"
                 )
 
+                # Periodic Google Drive Auto-Sync every 250 companies
+                if gdrive and gdrive.is_configured and completed % 250 == 0:
+                    asyncio.get_running_loop().run_in_executor(None, gdrive.sync_file, OUTPUT_ENRICHED_CSV)
+
     tasks = [process_one(row, i) for i, row in enumerate(companies_to_process, 1)]
     await asyncio.gather(*tasks)
+
+    # Final Google Drive Auto-Sync on completion
+    if gdrive and gdrive.is_configured:
+        print("\n☁️ Uploading final completed dataset to Google Drive...")
+        gdrive.sync_file(OUTPUT_ENRICHED_CSV)
 
     print("\n" + "=" * 76)
     print("  🎉 ENRICHMENT COMPLETE FOR 2026 BATCH!")

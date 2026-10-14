@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python -m playwright install --with-deps chromium || true
 
 # Copy application source code
-COPY master_main.py run_2026_enrichment.py stats_2026_enriched.py proxies.txt* ./
+COPY master_main.py run_2026_enrichment.py stats_2026_enriched.py gdrive_sync.py proxies.txt* ./
 COPY yearwise_csv/companies_2026.csv ./yearwise_csv/companies_2026.csv
 COPY companies_2026_enriched.csv ./companies_2026_enriched.csv
 
