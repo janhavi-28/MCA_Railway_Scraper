@@ -82,7 +82,11 @@ class GDriveSync:
             if not self._file_id:
                 query = f"name = '{filename}' and '{self.folder_id}' in parents and trashed = false"
                 response = self._service.files().list(
-                    q=query, spaces="drive", fields="files(id, name)"
+                    q=query,
+                    spaces="drive",
+                    fields="files(id, name)",
+                    supportsAllDrives=True,
+                    includeItemsFromAllDrives=True
                 ).execute()
                 files = response.get("files", [])
                 if files:
@@ -94,9 +98,10 @@ class GDriveSync:
             if self._file_id:
                 self._service.files().update(
                     fileId=self._file_id,
-                    media_body=media
+                    media_body=media,
+                    supportsAllDrives=True
                 ).execute()
-                print(f"☁️ [Google Drive] Successfully synced {filename} (ID: {self._file_id})")
+                print(f"[Google Drive] Successfully synced {filename} (ID: {self._file_id})")
             else:
                 file_metadata = {
                     "name": filename,
@@ -105,15 +110,16 @@ class GDriveSync:
                 created = self._service.files().create(
                     body=file_metadata,
                     media_body=media,
-                    fields="id"
+                    fields="id",
+                    supportsAllDrives=True
                 ).execute()
                 self._file_id = created.get("id")
-                print(f"☁️ [Google Drive] Created new backup {filename} (ID: {self._file_id})")
+                print(f"[Google Drive] Created new backup {filename} (ID: {self._file_id})")
 
             return True
 
         except Exception as e:
-            print(f"⚠️ [Google Drive] Sync failed: {e}")
+            print(f"[Google Drive] Sync failed: {e}")
             return False
 
 
