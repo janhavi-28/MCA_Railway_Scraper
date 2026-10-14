@@ -1,4 +1,5 @@
 FROM python:3.11-slim
+# Build: v1.0.1-queue-worker-2026-10-14T18:35:00
 
 # Force Python output to be completely unbuffered for live streaming Railway logs
 ENV PYTHONUNBUFFERED=1
