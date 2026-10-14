@@ -305,6 +305,7 @@ async def run_pipeline(concurrency: int = 5, limit: int = 0, no_proxy: bool = Fa
                 await process_one(row)
             except Exception as e:
                 print(f"⚠️ [Worker Error]: {e}")
+                await asyncio.sleep(2)
             finally:
                 queue.task_done()
 
